@@ -150,7 +150,7 @@ void reconnect() {
     } else {
       Serial.print("Failed with state ");
       Serial.print(client.state());
-      delay(1000);
+      delay(2000);
     }
   }
 }
