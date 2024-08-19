@@ -26,9 +26,9 @@ Servo myServo;
 const int servoPin = 13;
 const int irSensorPin = 34;
 const int DHTSensorPin = 23;
-const int flameSensorPin = 26;
-const int SmokeSensorPin = 33;
-const int gazSensorPin = 32;
+const int flameSensorPin = 26; // Assume this is a digital sensor
+const int smokeSensorPin = 33;
+const int gasSensorPin = 32;
 const int ledPin = 5;
 const int buzzerPin = 15;
 
@@ -53,6 +53,7 @@ void setup() {
   // Initialize GPIO pins
   pinMode(ledPin, OUTPUT);
   pinMode(buzzerPin, OUTPUT);
+  pinMode(flameSensorPin, INPUT);
   digitalWrite(ledPin, LOW);
   digitalWrite(buzzerPin, LOW);
 
@@ -100,34 +101,32 @@ void loop() {
   }
   client.loop();
 
-  // Handle sensors and MQTT publishing
-  handleSensors();
+  handleSensors();  // Call the function to handle sensor data
 }
 
-// Function to handle sensor readings, publishing, and actuation
 void handleSensors() {
   // Read the IR sensor value
   int irvalue = analogRead(irSensorPin);
   int Distance_cm = map(irvalue, 0, 4095, 0, 12);
   Serial.print("IR Sensor Value: ");
-  Serial.println( Distance_cm );
+  Serial.println(Distance_cm);
 
-// Read and classify Flame Sensor value
-int flameSensorValue = digitalRead(flameSensorPin); 
-String flameStatus = flameSensorValue == HIGH ? "High" : "Low";  
-Serial.print("Flame Sensor Status: ");
-Serial.println(flameStatus);
+  // Read and classify Flame Sensor value (digital)
+  int flameSensorValue = digitalRead(flameSensorPin); // Assuming digital read
+  Serial.print("Flame Sensor Status: ");
+  Serial.println(flameSensorValue ? "Detected" : "Not Detected");
 
-  int SmokeSensorValue = analogRead(SmokeSensorPin);
-  int SmokePercentage = map(SmokeSensorValue, 0, 4095, 0, 100);
+  // Read Smoke and Gas Sensor values (analog)
+  int smokeSensorValue = analogRead(smokeSensorPin);
+  int smokePercentage = map(smokeSensorValue, 0, 4095, 0, 100);
   Serial.print("Smoke Sensor Value: ");
-  Serial.print(SmokePercentage);
+  Serial.print(smokePercentage);
   Serial.println("%");
 
-  int gazSensorValue = analogRead(gazSensorPin);
-  int gazPercentage = map(gazSensorValue, 0, 4095, 0, 100);
+  int gasSensorValue = analogRead(gasSensorPin);
+  int gasPercentage = map(gasSensorValue, 0, 4095, 0, 100);
   Serial.print("Gas Sensor Value: ");
-  Serial.print(gazPercentage);
+  Serial.print(gasPercentage);
   Serial.println("%");
 
   // Read temperature and humidity
@@ -143,11 +142,11 @@ Serial.println(flameStatus);
 
   // Publish sensor data to MQTT topics
   client.publish("esp32/irSensor", String(Distance_cm).c_str());
-  client.publish("esp32/flameSensor", flameStatus.c_str());
-  client.publish("esp32/SmokeSensor", String(SmokePercentage).c_str());
-  client.publish("esp32/gasSensor", String(gazPercentage).c_str());
-  client.publish("esp32/TemperatureSensor", String(temperature).c_str());
-  client.publish("esp32/HumiditySensor", String(humidity).c_str());
+  client.publish("esp32/flameSensor", flameSensorValue ? "Detected" : "Not Detected");
+  client.publish("esp32/smokeSensor", String(smokePercentage).c_str());
+  client.publish("esp32/gasSensor", String(gasPercentage).c_str());
+  client.publish("esp32/temperatureSensor", String(temperature).c_str());
+  client.publish("esp32/humiditySensor", String(humidity).c_str());
 
   // Check IR sensor to open door (servo) if a person is detected
   if (Distance_cm < 5) {
@@ -160,16 +159,13 @@ Serial.println(flameStatus);
   }
 
   // Check for fire, gas, or smoke detection
-  if (flameStatus == "High" || SmokePercentage > 50 || gazPercentage > 50) {
+  if (flameSensorValue == HIGH || smokePercentage > 50 || gasPercentage > 50) {
     Serial.println("Alert: Fire/Smoke/Gas detected");
     lcd.clear();
     lcd.print("Alert Detected!");
     digitalWrite(ledPin, HIGH);
     digitalWrite(buzzerPin, HIGH);
     client.publish("esp32/alerts", "Fire/Smoke/Gas detected!");
-    delay(10000); // Keep the alert for 10 seconds
-    digitalWrite(ledPin, LOW);
-    digitalWrite(buzzerPin, LOW);
   }
 
   // Display temperature and humidity on LCD
@@ -212,5 +208,3 @@ void reconnect() {
     }
   }
 }
-
-
