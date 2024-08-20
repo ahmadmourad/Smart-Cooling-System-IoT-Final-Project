@@ -8,13 +8,13 @@
 #define DHTTYPE DHT11
 
 // Wi-Fi credentials
-const char* ssid = "realme9i";
-const char* password = "12345678";
+const char* ssid = "LYNX";
+const char* password = "ahmed393";
 
 // MQTT Broker details
-const char* mqtt_broker = "b1a69793bf6e48eca7ab350e88d63dd4.s1.eu.hivemq.cloud";
-const char* mqtt_username = "YoussefHelmy";
-const char* mqtt_password = "Aa01122237213";
+const char* mqtt_broker = "30dacc27eccc41338d1d3d410bc82c17.s1.eu.hivemq.cloud";
+const char* mqtt_username = "hivemq.webclient.1724148755114";
+const char* mqtt_password = "oa1B#zV9T3CJyN6.%gv,";
 const int mqtt_port = 8883;
 
 // Initialize Wi-Fi and MQTT client objects
@@ -26,11 +26,13 @@ Servo myServo;
 const int servoPin = 13;
 const int irSensorPin = 34;
 const int DHTSensorPin = 23;
-const int flameSensorPin = 26; // Assume this is a digital sensor
+const int flameSensorPin = 25; // Assume this is a digital sensor
 const int smokeSensorPin = 33;
 const int gasSensorPin = 32;
-const int ledPin = 5;
+const int ledPin = 2;
 const int buzzerPin = 15;
+const int fan1 = 26;
+const int fan2 = 14;
 
 // DHT Sensor setup
 DHT dht(DHTSensorPin, DHTTYPE);
@@ -54,8 +56,12 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(buzzerPin, OUTPUT);
   pinMode(flameSensorPin, INPUT);
+  pinMode(fan1, OUTPUT);
+  pinMode(fan2, OUTPUT);
   digitalWrite(ledPin, LOW);
   digitalWrite(buzzerPin, LOW);
+  digitalWrite(fan1, LOW);
+  digitalWrite(fan2, LOW);
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -118,13 +124,13 @@ void handleSensors() {
 
   // Read Smoke and Gas Sensor values (analog)
   int smokeSensorValue = analogRead(smokeSensorPin);
-  int smokePercentage = map(smokeSensorValue, 0, 4095, 0, 100);
+  int smokePercentage = map(smokeSensorValue, 300, 10000, 0, 100);
   Serial.print("Smoke Sensor Value: ");
   Serial.print(smokePercentage);
   Serial.println("%");
 
   int gasSensorValue = analogRead(gasSensorPin);
-  int gasPercentage = map(gasSensorValue, 0, 4095, 0, 100);
+  int gasPercentage = map(gasSensorValue, 300, 10000, 0, 100);
   Serial.print("Gas Sensor Value: ");
   Serial.print(gasPercentage);
   Serial.println("%");
@@ -158,14 +164,27 @@ void handleSensors() {
     myServo.write(0);    // Close door
   }
 
-  // Check for fire, gas, or smoke detection
+  // Check temperature and control fan1
+  if (temperature >= 25) {
+    Serial.println("Temperature >= 25°C, turning on fan1");
+    digitalWrite(fan1, HIGH);
+  } else {
+    digitalWrite(fan1, LOW);
+  }
+
+  // Check for fire, gas, or smoke detection and control fan2, LED, and buzzer
   if (flameSensorValue == HIGH || smokePercentage > 50 || gasPercentage > 50) {
-    Serial.println("Alert: Fire/Smoke/Gas detected");
+    Serial.println("Alert: Fire/Smoke/Gas detected, turning on fan2, LED, and buzzer");
     lcd.clear();
     lcd.print("Alert Detected!");
     digitalWrite(ledPin, HIGH);
     digitalWrite(buzzerPin, HIGH);
+    digitalWrite(fan2, HIGH);
     client.publish("esp32/alerts", "Fire/Smoke/Gas detected!");
+  } else {
+    digitalWrite(ledPin, LOW);
+    digitalWrite(buzzerPin, LOW);
+    digitalWrite(fan2, LOW);
   }
 
   // Display temperature and humidity on LCD
