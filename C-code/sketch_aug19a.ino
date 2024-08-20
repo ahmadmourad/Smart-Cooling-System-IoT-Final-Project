@@ -26,7 +26,7 @@ Servo myServo;
 const int servoPin = 13;
 const int irSensorPin = 34;
 const int DHTSensorPin = 23;
-const int flameSensorPin = 25; // Assume this is a digital sensor
+const int flameSensorPin = 36;
 const int smokeSensorPin = 33;
 const int gasSensorPin = 32;
 const int ledPin = 2;
@@ -117,10 +117,11 @@ void handleSensors() {
   Serial.print("IR Sensor Value: ");
   Serial.println(Distance_cm);
 
-  // Read and classify Flame Sensor value (digital)
-  int flameSensorValue = digitalRead(flameSensorPin); // Assuming digital read
-  Serial.print("Flame Sensor Status: ");
-  Serial.println(flameSensorValue ? "Detected" : "Not Detected");
+// Read the Flame Sensor value (analog)
+    int flameSensorValue = analogRead(flameSensorPin); // Read analog value
+    int flameThreshold = 1000; // Set an appropriate threshold
+    Serial.print("Flame Sensor Value: ");
+    Serial.println(flameSensorValue);
 
   // Read Smoke and Gas Sensor values (analog)
   int smokeSensorValue = analogRead(smokeSensorPin);
@@ -148,7 +149,7 @@ void handleSensors() {
 
   // Publish sensor data to MQTT topics
   client.publish("esp32/irSensor", String(Distance_cm).c_str());
-  client.publish("esp32/flameSensor", flameSensorValue ? "Detected" : "Not Detected");
+  client.publish("esp32/flameSensor", flameSensorValue > 2000 ? "Detected" : "Not Detected");
   client.publish("esp32/smokeSensor", String(smokePercentage).c_str());
   client.publish("esp32/gasSensor", String(gasPercentage).c_str());
   client.publish("esp32/temperatureSensor", String(temperature).c_str());
@@ -160,7 +161,7 @@ void handleSensors() {
     lcd.clear();
     lcd.print("Person detected");
     myServo.write(180);  // Move servo to open door
-    delay(5000);        // Keep door open for 5 seconds
+    delay(5000);         // Keep door open for 5 seconds
     myServo.write(0);    // Close door
   }
 
@@ -173,14 +174,30 @@ void handleSensors() {
   }
 
   // Check for fire, gas, or smoke detection and control fan2, LED, and buzzer
-  if (flameSensorValue == HIGH || smokePercentage > 50 || gasPercentage > 50) {
-    Serial.println("Alert: Fire/Smoke/Gas detected, turning on fan2, LED, and buzzer");
+  if (flameSensorValue < 1500) {
+    Serial.println("Alert: Fire Detected");
     lcd.clear();
     lcd.print("Alert Detected!");
     digitalWrite(ledPin, HIGH);
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(fan2, HIGH);
-    client.publish("esp32/alerts", "Fire/Smoke/Gas detected!");
+    client.publish("esp32/alerts", "Fire detected!");
+  } else if (smokePercentage > 50) {
+    Serial.println("Alert: Smoke Detected");
+    lcd.clear();
+    lcd.print("Alert Detected!");
+    digitalWrite(ledPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(fan2, HIGH);
+    client.publish("esp32/alerts", "Smoke detected!");
+  } else if (gasPercentage > 50) {
+    Serial.println("Alert: Gas Detected");
+    lcd.clear();
+    lcd.print("Alert Detected!");
+    digitalWrite(ledPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(fan2, HIGH);
+    client.publish("esp32/alerts", "Gas detected!");
   } else {
     digitalWrite(ledPin, LOW);
     digitalWrite(buzzerPin, LOW);
