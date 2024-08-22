@@ -25,7 +25,7 @@ const int fan2 = 14;
 DHT dht(DHTSensorPin, DHTTYPE);
 
 // LCD setup
-// LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // // Wi-Fi credentials
 // const char* ssid = "LYNX";
@@ -128,11 +128,11 @@ void handleSensors() {
 
   // Check IR sensor to open door (servo) if a person is detected
   if (Distance_cm < 4) {
-    // Serial.println("Person detected, opening door");
+    Serial.println("Person detected, opening door");
     // lcd.clear();
     // lcd.print("Person detected");
     myServo.write(180);  // Move servo to open door
-    delay(5000);         // Keep door open for 5 seconds
+    delay(1000);         // Keep door open for 5 seconds
     myServo.write(0);    // Close door
   }
 
@@ -187,7 +187,7 @@ void handleSensors() {
   // lcd.setCursor(0, 1);
   // lcd.print("Humidity: ");
   // lcd.print(humidity);
-  delay(1000);
+  delay(1500);
 }
 
 
@@ -198,8 +198,8 @@ Serial.begin(115200);
   dht.begin();
 
   // Initialize LCD
-  // lcd.begin(16, 2);
-  // lcd.backlight();
+  lcd.begin(16, 2);
+  lcd.backlight();
 
   // Initialize GPIO pins
   pinMode(ledPin, OUTPUT);
@@ -249,7 +249,6 @@ Serial.begin(115200);
   //   }
   // }
 
-  // Attach the servo motor to the specified pin
 }
 
 void loop() {
@@ -258,6 +257,8 @@ void loop() {
   //   reconnect();
   // }
   // client.loop();
-
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(dht.readTemperature());
   handleSensors();  // Call the function to handle sensor data
 }
