@@ -116,8 +116,8 @@ if (Distance_cm < 4) {
     digitalWrite(fan1, LOW);
   }
 
-  int flameThreshold = 1000; 
   // Check for fire, gas, or smoke detection and control fan two(exhaust fan), LED, and buzzer
+  int flameThreshold = 1000; 
   if (flameSensorValue < flameThreshold) {
     Serial.println("Alert: Fire Detected");
     lcd.clear();
@@ -126,6 +126,7 @@ if (Distance_cm < 4) {
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(fan2, HIGH);
     digitalWrite(fan1, LOW);
+    client.publish("esp32/alerts", "Fire detected!");
 
   } else if (GasMQ5Percentage > 10) {
     Serial.println("Alert: Gas Detected, turning on exhaust fan!");
@@ -135,8 +136,8 @@ if (Distance_cm < 4) {
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(fan2, HIGH);
     digitalWrite(fan1, LOW);
+    client.publish("esp32/alerts", "Smoke detected!");
 
-    // client.publish("esp32/alerts", "Smoke detected!");
   } else if (MQ2SmokePercentage > 25) {
     Serial.println("Alert: Smoke Detected turning on exhaust fan!");
     lcd.clear();
@@ -145,16 +146,16 @@ if (Distance_cm < 4) {
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(fan1, LOW);
     digitalWrite(fan2, HIGH);
-    // client.publish("esp32/alerts", "Gas detected!");
+    client.publish("esp32/alerts", "Gas detected!");
   } else {
     digitalWrite(ledPin, LOW);
     digitalWrite(buzzerPin, LOW);
     digitalWrite(fan2, LOW);
   }
 
-// Publish sensor data to MQTT topics
+// Publish sensor readings to MQTT topics
   client.publish("esp32/irSensor", String(Distance_cm).c_str());
-  client.publish("esp32/flameSensor", flameSensorValue < 1000 ? "Fire Detected" : "No Fire Detected");
+  client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
   client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
   client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
   client.publish("esp32/temperatureSensor", String(temperature).c_str());
