@@ -1,3 +1,6 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
 #include <ESP32Servo.h>
 #include <HardwareSerial.h>
 #include <Wire.h>
@@ -21,6 +24,45 @@ int GasMQ5Percentage,MQ2SmokePercentage,Distance_cm,flameSensorValue;
 
 
 HardwareSerial mySerial(1);
+
+
+// Wi-Fi credentials
+const char* ssid = "realme9i";
+const char* password = "12345678";
+
+// MQTT Broker details
+const char* mqtt_broker = "b1a69793bf6e48eca7ab350e88d63dd4.s1.eu.hivemq.cloud";
+const char* mqtt_username = "hivemq.webclient.1724491871036";
+const char* mqtt_password = "yA:P!ef4.#RU0kWB18ra";
+const int mqtt_port = 8883;
+
+// Initialize Wi-Fi and MQTT client objects
+WiFiClientSecure wifiClient;
+PubSubClient client(wifiClient);
+
+// Callback function to handle messages received on subscribed topics
+void callback(char* topic, byte* payload, unsigned int length) {
+  String message;
+  for (int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+}
+// Reconnect function to maintain MQTT connection
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    String client_id = "esp32-client-" + String(WiFi.macAddress());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("Connected to MQTT Broker");
+    } else {
+      Serial.print("Failed with state ");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
+}
+
+
 
 
 void recieveSensors_Actuate(){
@@ -56,8 +98,12 @@ if (Distance_cm < 4) {
     lcd.clear();
     lcd.print("Person detected");
     myServo.write(180);  // Move servo to open door
+  client.publish("esp32/servo","180");
+
     delay(1000);        
     myServo.write(0);    // Close door
+      client.publish("esp32/servo","0");
+
   }
 
   // Check temperature and control fan one
@@ -91,7 +137,7 @@ if (Distance_cm < 4) {
     digitalWrite(fan1, LOW);
 
     // client.publish("esp32/alerts", "Smoke detected!");
-  } else if (MQ2SmokePercentage > 30) {
+  } else if (MQ2SmokePercentage > 25) {
     Serial.println("Alert: Smoke Detected turning on exhaust fan!");
     lcd.clear();
     lcd.print("Smoke Detected!");
@@ -106,7 +152,16 @@ if (Distance_cm < 4) {
     digitalWrite(fan2, LOW);
   }
 
-  // Display temperature and humidity on LCD
+// Publish sensor data to MQTT topics
+  client.publish("esp32/irSensor", String(Distance_cm).c_str());
+  client.publish("esp32/flameSensor", flameSensorValue < 1000 ? "Fire Detected" : "No Fire Detected");
+  client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
+  client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
+  client.publish("esp32/temperatureSensor", String(temperature).c_str());
+  client.publish("esp32/humiditySensor", String(humidity).c_str());
+
+
+ // Display temperature and humidity on LCD
   delay(700);
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -140,6 +195,8 @@ void print_sensors_reading(){
   Serial.println(" %");
 }
 
+
+
 void setup() {
 
   Serial.begin(115200);
@@ -162,10 +219,57 @@ void setup() {
   digitalWrite(buzzerPin, LOW);
   myServo.write(0);  // Set servo to 0 degrees
 
+
+
+
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+    lcd.setCursor(0, 0);
+    lcd.println("Connecting to    ");
+    lcd.setCursor(0,1);
+    lcd.print("WiFi");
+  }
+  Serial.println("Connected to WiFi");
+  lcd.clear();
+  lcd.print("WiFi Connected");
+
+  // Attach the certificate bundle to the secure client
+  wifiClient.setInsecure();
+
+  // Set up the MQTT client
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+
+  // Connect to the MQTT Broker
+  while (!client.connected()) {
+    Serial.print("Connecting to MQTT Broker...");
+    String client_id = "esp32-client-" + String(WiFi.macAddress());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("Connected to MQTT Broker");
+    } else {
+      Serial.print("Failed with state ");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
 }
 
+
+
+
 void loop() {
+
+//  Ensure the client stays connected and processes incoming messages
+if (!client.connected()) {
+    reconnect();
+  }
+client.loop();
+
 recieveSensors_Actuate();
 print_sensors_reading();
+
 
 }
