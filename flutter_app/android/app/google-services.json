@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "533848239474",
+    "project_id": "final-project-smart-ac-7b829",
+    "storage_bucket": "final-project-smart-ac-7b829.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533848239474:android:0c76f2ab6e154abdca01eb",
+        "android_client_info": {
+          "package_name": "com.smartac.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE_0i7Blynhp_xPcqkvSFrMmFtk2bAjts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
