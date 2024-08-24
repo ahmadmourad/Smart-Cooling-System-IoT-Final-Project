@@ -20,7 +20,7 @@ const int fan2 = 14;
 
 //defining required variables
 float temperature , humidity;
-int GasMQ5Percentage,MQ2SmokePercentage,Distance_cm,flameSensorValue;
+int GasMQ5Percentage,MQ2SmokePercentage,Distance_cm,flameSensorValue ,fan1State ,fan2State;
 
 
 HardwareSerial mySerial(1);
@@ -32,8 +32,8 @@ const char* password = "12345678";
 
 // MQTT Broker details
 const char* mqtt_broker = "b1a69793bf6e48eca7ab350e88d63dd4.s1.eu.hivemq.cloud";
-const char* mqtt_username = "hivemq.webclient.1724491871036";
-const char* mqtt_password = "yA:P!ef4.#RU0kWB18ra";
+const char* mqtt_username = "hivemq.webclient.1724501117674";
+const char* mqtt_password = "edD43PXh?0FZ;fY.p&7n";
 const int mqtt_port = 8883;
 
 // Initialize Wi-Fi and MQTT client objects
@@ -154,6 +154,21 @@ if (Distance_cm < 4) {
   }
 
 // Publish sensor readings to MQTT topics
+fan1State = digitalRead(fan1);
+fan2State = digitalRead(fan2);
+
+
+if (fan1State == HIGH) {
+    client.publish("esp32/fan1", "ON");
+} else {
+    client.publish("esp32/fan1", "OFF");
+}
+
+if (fan2State == HIGH) {
+    client.publish("esp32/fan2", "ON");
+} else {
+    client.publish("esp32/fan2", "OFF");
+};
   client.publish("esp32/irSensor", String(Distance_cm).c_str());
   client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
   client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
@@ -257,7 +272,6 @@ void setup() {
     }
   }
 }
-
 
 
 
