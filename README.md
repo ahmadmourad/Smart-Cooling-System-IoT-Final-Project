@@ -1,5 +1,4 @@
 # Smart-Cooling-System-IoT-Final-Project
-![image](https://github.com/user-attachments/assets/870cd53d-c439-4892-b208-cfad536ca1fe)
 
 The project involves building Smart Air System working based on  sensor monitoring and control system using an ESP32 microcontroller. The system reads data from various sensors (temperature, humidity, IR, flame, gas, and smoke) and Fan and Air pump take appropriate actions based on the sensor readings. as well as we create Flutter mobile Application to Controls the Fan and Air pump.
 
