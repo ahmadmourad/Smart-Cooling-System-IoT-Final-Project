@@ -55,14 +55,6 @@ class _SensorScreenState extends State<SensorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sensor Readings'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, '/fan-control');
-            },
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -110,4 +102,5 @@ class _SensorData {
   final DateTime time;
   final double reading;
 }
+
 
