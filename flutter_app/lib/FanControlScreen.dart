@@ -6,8 +6,8 @@ class FanControlScreen extends StatelessWidget {
 
   FanControlScreen({required this.mqttClientWrapper});
 
-  void _toggleDevice(String device, bool turnOn) {
-    mqttClientWrapper.publishMessage('esp32/$device', turnOn ? 'ON' : 'OFF');
+  void _toggleDevice(String device, String message) {
+    mqttClientWrapper.publishMessage('esp32/$device', message);
   }
 
   @override
@@ -18,81 +18,73 @@ class FanControlScreen extends StatelessWidget {
         backgroundColor: Color.fromARGB(124, 150, 18, 157),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Fan Control Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.air, size: 30, color: Colors.blue),
-                  SizedBox(width: 10),
-                  Text(
-                    'Fan Control',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => _toggleDevice('fan1', true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green, // Green color for ON
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.air, size: 30, color: Colors.blue),
+                SizedBox(width: 10),
+                Text(
+                  'Fan Control',
+                  style: TextStyle(fontSize: 24),
                 ),
-                child: Text(
-                  'ON',
-                  style: TextStyle(color: Colors.white), // Text color for ON
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => _toggleDevice('fan1', false),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Red color for OFF
-                ),
-                child: Text(
-                  'OFF',
-                  style: TextStyle(color: Colors.white), // Text color for OFF
-                ),
-              ),
-              SizedBox(height: 30), // Space between sections
+              ],
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('fan1', 'ON');
+              },
+              child: Text('Turn On'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('fan1', 'OFF');
+              },
+              child: Text('Turn Off'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('fan1', 'AUTO');
+              },
+              child: Text('Auto Mode'),
+            ),
+            SizedBox(height: 20), // add some space between sections
 
-              // Air Pump System Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.water_damage, size: 30, color: Colors.green),
-                  SizedBox(width: 10),
-                  Text(
-                    'Air Pump System',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => _toggleDevice('airPump', true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green, // Green color for ON
+            // Air Pump System Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.heat_pump, size: 30, color: Colors.green),
+                SizedBox(width: 10),
+                Text(
+                  'Air Pump System',
+                  style: TextStyle(fontSize: 24),
                 ),
-                child: Text(
-                  'ON',
-                  style: TextStyle(color: Colors.white), // Text color for ON
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => _toggleDevice('airPump', false),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Red color for OFF
-                ),
-                child: Text(
-                  'OFF',
-                  style: TextStyle(color: Colors.white), // Text color for OFF
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('airPump', 'ON');
+              },
+              child: Text('Turn On'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('airPump', 'OFF');
+              },
+              child: Text('Turn Off'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _toggleDevice('airPump', 'AUTO');
+              },
+              child: Text('Auto Mode'),
+            ),
+          ],
         ),
       ),
     );
