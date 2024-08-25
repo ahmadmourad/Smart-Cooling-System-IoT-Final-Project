@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'MQTT.dart';
-import 'FanControlScreen.dart';
 
 class SensorScreen extends StatefulWidget {
   final MQTTClientWrapper mqttClientWrapper;
@@ -20,6 +19,24 @@ class _SensorScreenState extends State<SensorScreen> {
     'Gas Sensor': [],
     'Smoke Sensor': [],
     'Humidity Sensor': [],
+  };
+
+  final Map<String, IconData> sensorIcons = {
+    'IR Sensor': Icons.wifi_tethering,
+    'Temperature Sensor': Icons.thermostat,
+    'Flame Sensor': Icons.local_fire_department,
+    'Gas Sensor': Icons.cloud,
+    'Smoke Sensor': Icons.smoke_free,
+    'Humidity Sensor': Icons.water_drop,
+  };
+
+  final Map<String, Color> sensorColors = {
+    'IR Sensor': Colors.red,
+    'Temperature Sensor': Colors.orange,
+    'Flame Sensor': Colors.yellow,
+    'Gas Sensor': Colors.green,
+    'Smoke Sensor': Colors.blue,
+    'Humidity Sensor': Colors.purple,
   };
 
   @override
@@ -55,6 +72,7 @@ class _SensorScreenState extends State<SensorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sensor Readings'),
+        backgroundColor: Colors.blueGrey, // Customize the app bar color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -63,9 +81,15 @@ class _SensorScreenState extends State<SensorScreen> {
             return Expanded(
               child: Column(
                 children: [
-                  Text(
-                    '${entry.key} Reading',
-                    style: TextStyle(fontSize: 18),
+                  Row(
+                    children: [
+                      Icon(sensorIcons[entry.key], size: 24), // Add icon
+                      SizedBox(width: 8),
+                      Text(
+                        '${entry.key} Reading',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 10),
                   Expanded(
@@ -76,6 +100,7 @@ class _SensorScreenState extends State<SensorScreen> {
                           dataSource: entry.value,
                           xValueMapper: (_SensorData data, _) => data.time,
                           yValueMapper: (_SensorData data, _) => data.reading,
+                          color: sensorColors[entry.key], // Set line color
                         ),
                       ],
                     ),
@@ -86,13 +111,6 @@ class _SensorScreenState extends State<SensorScreen> {
           }).toList(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/fan-control');
-        },
-        child: Icon(Icons.settings),
-        tooltip: 'Go to Fan Control',
-      ),
     );
   }
 }
@@ -102,5 +120,7 @@ class _SensorData {
   final DateTime time;
   final double reading;
 }
+
+
 
 
