@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^3.3.0
   firebase_auth: ^5.1.4
+  mqtt_client: 10.5.1
+  syncfusion_flutter_charts: ^20.4.48
 
 
 dev_dependencies:
