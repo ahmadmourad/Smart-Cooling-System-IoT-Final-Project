@@ -13,12 +13,13 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper(); // Initialize the MQTT client wrapper
+  final MQTTClientWrapper mqttClientWrapper =
+      MQTTClientWrapper(); // Initialize the MQTT client wrapper
 
   void _signIn() async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
@@ -28,7 +29,8 @@ class _SignInScreenState extends State<SignInScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SensorScreen(mqttClientWrapper: mqttClientWrapper),
+          builder: (context) =>
+              SensorScreen(mqttClientWrapper: mqttClientWrapper),
         ),
       );
     } on FirebaseAuthException catch (e) {

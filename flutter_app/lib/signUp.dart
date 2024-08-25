@@ -19,16 +19,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       // Store additional user information in Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'email': _emailController.text,
+        'email': _emailController.text.trim(),
         'password': _passwordController.text,
         'id': userCredential.user!.uid,
-        'phone_number': _phoneNumberController.text,
+        'phone_number': _phoneNumberController.text.trim(),
         // Add other fields as necessary
       });
 
