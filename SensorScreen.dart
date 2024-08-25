@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'MQTT.dart';
+import 'FanControlScreen.dart';
 
 class SensorScreen extends StatefulWidget {
   final MQTTClientWrapper mqttClientWrapper;
@@ -54,6 +55,14 @@ class _SensorScreenState extends State<SensorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sensor Readings'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.pushNamed(context, '/fan-control');
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,6 +94,13 @@ class _SensorScreenState extends State<SensorScreen> {
           }).toList(),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/fan-control');
+        },
+        child: Icon(Icons.settings),
+        tooltip: 'Go to Fan Control',
+      ),
     );
   }
 }
@@ -94,3 +110,4 @@ class _SensorData {
   final DateTime time;
   final double reading;
 }
+
