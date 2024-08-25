@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'MQTT.dart';
+import 'FanControlScreen.dart'; // Import the FanControlScreen
 
 class SensorScreen extends StatefulWidget {
   final MQTTClientWrapper mqttClientWrapper;
@@ -72,7 +73,18 @@ class _SensorScreenState extends State<SensorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sensor Readings'),
-        backgroundColor: Colors.blueGrey, // Customize the app bar color
+        backgroundColor: Colors.blueGrey,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings_remote),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FanControlScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -83,7 +95,7 @@ class _SensorScreenState extends State<SensorScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(sensorIcons[entry.key], size: 24), // Add icon
+                      Icon(sensorIcons[entry.key], size: 24),
                       SizedBox(width: 8),
                       Text(
                         '${entry.key} Reading',
@@ -100,7 +112,7 @@ class _SensorScreenState extends State<SensorScreen> {
                           dataSource: entry.value,
                           xValueMapper: (_SensorData data, _) => data.time,
                           yValueMapper: (_SensorData data, _) => data.reading,
-                          color: sensorColors[entry.key], // Set line color
+                          color: sensorColors[entry.key],
                         ),
                       ],
                     ),
@@ -120,7 +132,3 @@ class _SensorData {
   final DateTime time;
   final double reading;
 }
-
-
-
-
