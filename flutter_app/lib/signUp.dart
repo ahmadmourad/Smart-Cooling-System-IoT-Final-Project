@@ -11,6 +11,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -27,6 +28,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         'email': _emailController.text,
         'password': _passwordController.text,
         'id': userCredential.user!.uid,
+        'phone_number': _phoneNumberController.text,
         // Add other fields as necessary
       });
 
@@ -55,6 +57,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               controller: _passwordController,
               decoration: InputDecoration(labelText: "Password"),
               obscureText: true,
+            ),
+            TextField(
+              controller: _phoneNumberController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+              ),
+              keyboardType: TextInputType.phone,
             ),
             SizedBox(height: 20),
             ElevatedButton(
