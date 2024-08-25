@@ -12,7 +12,7 @@ The gas sensor detects gas below the threshold.
 The smoke sensor detects smoke below the threshold.
 The flame sensor does not detect fire.
 
-## MAQTT
+## MQTT
 Wi-Fi and MQTT Integration: The Two ESP32 also connects to a Wi-Fi network and communicates with an MQTT broker. It publishes sensor readings and control actions to specific MQTT topics and receives control commands via MQTT.
 
 
