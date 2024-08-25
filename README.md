@@ -24,23 +24,21 @@ We Connect The MQTT Serve With NODE RED by passing into MQTTin flow :-
 4-Topic Name 
 ![image](https://github.com/user-attachments/assets/4f742314-8840-4dc9-b95b-7a6870e6c36c)
 
-After that we display the Signals that are coming From Sensors into Line Charts , Graphs and Gauges .
+### After that we display the Signals that are coming From Sensors into Line Charts , Graphs and Gauges .
 ![image](https://github.com/user-attachments/assets/ebe24ca7-50f0-40d3-98fa-670b257c70db)
 
-##Mobile Application!
+## Mobile Application!
 
-Sign in /sign up Screens :-
-We connect The App with Firebase to Store the database of users 
+### Sign in /sign up Screens :-
+### We connect The App with Firebase to Store the database of users 
 ![image](https://github.com/user-attachments/assets/03eaac55-1287-4148-b925-a0efdc789e63)
 
 ![image](https://github.com/user-attachments/assets/44859763-7248-4bf1-a1eb-1b726b39ec57)
 
-Sensors Dashboard That Contains Graphs For each Sensor to Show us the Signals That Coming from Our Sensors:-
+### Sensors Dashboard That Contains Graphs For each Sensor to Show us the Signals That Coming from Our Sensors:-
 ![image](https://github.com/user-attachments/assets/e04d5f17-4571-4397-a9b3-4d04dc0111c4)
 
-We Can Control our Fan and Air pump through MQTT Server where we Submit The Statue of Actuators that we would prefer, and we can easily subscribe on The topic of Fan and Air Pump :-
-
-
+### We Can Control our Fan and Air pump through MQTT Server where we Submit The Statue of Actuators that we would prefer, and we can easily subscribe on The topic of Fan and Air Pump :-
 ![image](https://github.com/user-attachments/assets/e24db329-1fda-4b10-9294-a2795877178d)
 
 
