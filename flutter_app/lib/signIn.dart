@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'signUp.dart';
+import 'sensorScreen.dart'; // Import the SensorScreen
+import 'MQTT.dart'; // Import the MQTT client wrapper
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -11,6 +13,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper(); // Initialize the MQTT client wrapper
 
   void _signIn() async {
     try {
@@ -20,6 +23,14 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       print("User signed in successfully");
+
+      // Navigate to the SensorScreen after successful sign-in
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SensorScreen(mqttClientWrapper: mqttClientWrapper),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       print("Error: $e");
       // Handle errors like user not found, wrong password, etc.
