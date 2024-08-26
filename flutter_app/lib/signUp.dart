@@ -16,6 +16,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void _signUp() async {
+    if (_phoneNumberController.text.trim().isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Phone number is required'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -34,7 +54,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       print("User signed up successfully");
     } on FirebaseAuthException catch (e) {
-      print("Error: $e");
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('An error occurred: ${e.message}'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
       // Handle errors like email already in use, weak password, etc.
     }
   }

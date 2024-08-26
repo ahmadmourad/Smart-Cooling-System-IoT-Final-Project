@@ -34,8 +34,24 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      print("Error: $e");
-      // Handle errors like user not found, wrong password, etc.
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('An error occurred: ${e.message}'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      // Handle errors like email already in use, weak password, etc.
     }
   }
 
