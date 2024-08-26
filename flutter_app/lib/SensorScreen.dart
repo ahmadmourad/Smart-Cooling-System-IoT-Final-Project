@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'MQTT.dart';
-import 'FanControlScreen.dart'; // Import the FanControlScreen
+import 'FanControlScreen.dart';
 
 class SensorScreen extends StatefulWidget {
   final MQTTClientWrapper mqttClientWrapper;
@@ -13,6 +13,7 @@ class SensorScreen extends StatefulWidget {
 }
 
 class _SensorScreenState extends State<SensorScreen> {
+  // a map to store data from all sensors
   Map<String, List<_SensorData>> sensorDataMap = {
     'IR Sensor': [],
     'Temperature Sensor': [],
@@ -22,6 +23,7 @@ class _SensorScreenState extends State<SensorScreen> {
     'Humidity Sensor': [],
   };
 
+  // a map to store icons for all sensors
   final Map<String, IconData> sensorIcons = {
     'IR Sensor': Icons.wifi_tethering,
     'Temperature Sensor': Icons.thermostat,
@@ -31,6 +33,7 @@ class _SensorScreenState extends State<SensorScreen> {
     'Humidity Sensor': Icons.water_drop,
   };
 
+  // a map to store colors for all sensors
   final Map<String, Color> sensorColors = {
     'IR Sensor': Colors.red,
     'Temperature Sensor': Colors.orange,
@@ -43,21 +46,28 @@ class _SensorScreenState extends State<SensorScreen> {
   @override
   void initState() {
     super.initState();
+
+    // set a callback for when an MQTT message is received
     widget.mqttClientWrapper.onMessageReceived = (message) {
       setState(() {
         var sensorType = _getSensorTypeFromMessage(message);
         if (sensorType != null) {
+          // add the message to the data list for the specified sensor
           var sensorList = sensorDataMap[sensorType]!;
           sensorList.add(_SensorData(DateTime.now(), double.parse(message)));
+          // remove the oldest item if the list is too long
           if (sensorList.length > 20) {
             sensorList.removeAt(0);
           }
         }
       });
     };
+
+    // prepare the MQTT client
     widget.mqttClientWrapper.prepareMqttClient();
   }
 
+  // a helper function to determine which sensor a message belongs to
   String? _getSensorTypeFromMessage(String message) {
     if (message.contains('irSensor')) return 'IR Sensor';
     if (message.contains('temperatureSensor')) return 'Temperature Sensor';
@@ -68,6 +78,11 @@ class _SensorScreenState extends State<SensorScreen> {
     return null;
   }
 
+  @override
+
+  /// This function builds a screen with a chart for each sensor reading
+  /// The chart shows the last 20 readings for each sensor.
+  /// The chart is updated in real time when a new MQTT message is received.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,16 +104,20 @@ class _SensorScreenState extends State<SensorScreen> {
         ],
       ),
       body: Padding(
+        // Add some padding to the entire screen
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: sensorDataMap.entries.map((entry) {
             return Expanded(
               child: Column(
                 children: [
+                  // A row for the sensor icon and the sensor name
                   Row(
                     children: [
+                      // The icon for the sensor
                       Icon(sensorIcons[entry.key], size: 24),
                       SizedBox(width: 8),
+                      // The name of the sensor
                       Text(
                         '${entry.key} Reading',
                         style: TextStyle(fontSize: 18),
@@ -106,10 +125,12 @@ class _SensorScreenState extends State<SensorScreen> {
                     ],
                   ),
                   SizedBox(height: 10),
+                  // A chart for the sensor readings
                   Expanded(
                     child: SfCartesianChart(
                       primaryXAxis: DateTimeAxis(),
                       series: <CartesianSeries>[
+                        // A line series for the sensor readings
                         LineSeries<_SensorData, DateTime>(
                           dataSource: entry.value,
                           xValueMapper: (_SensorData data, _) => data.time,
