@@ -24,11 +24,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => SignInScreen(),
+        '/': (context) => HomeScreen(),
+        '/sign-in': (context) => SignInScreen(),
         '/sign-up': (context) => SignUpScreen(),
-        '/home': (context) => HomeScreen(),
         '/sensor': (context) =>
             SensorScreen(mqttClientWrapper: mqttClientWrapper),
         '/fan-control': (context) =>
