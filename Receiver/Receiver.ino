@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-// defining uart pins used for transmission 
+// defining uart pins used for transmission
 #define RXp2 16
 #define TXp2 17
 
@@ -19,26 +19,27 @@ const int fan1 = 27;
 const int fan2 = 14;
 
 //defining required variables
-float temperature , humidity;
-int GasMQ5Percentage,MQ2SmokePercentage,Distance_cm,flameSensorValue ,fan1State ,fan2State;
-
+float temperature, humidity;
+int GasMQ5Percentage, MQ2SmokePercentage, Distance_cm, flameSensorValue, fan1State, fan2State;
+char keyPressed = ' ';
+bool AutoMode = true;  // Start system in automatic mode
 
 HardwareSerial mySerial(1);
-
-
-// Wi-Fi credentials
-const char* ssid = "realme9i";
-const char* password = "12345678";
-
-// MQTT Broker details
-const char* mqtt_broker = "b1a69793bf6e48eca7ab350e88d63dd4.s1.eu.hivemq.cloud";
-const char* mqtt_username = "hivemq.webclient.1724501117674";
-const char* mqtt_password = "edD43PXh?0FZ;fY.p&7n";
-const int mqtt_port = 8883;
 
 // Initialize Wi-Fi and MQTT client objects
 WiFiClientSecure wifiClient;
 PubSubClient client(wifiClient);
+
+// Wi-Fi credentials
+const char* ssid = "giga2";
+const char* password = "Gigabyte4802$";
+
+// MQTT Broker details
+const char* mqtt_broker = "e56327f5fee34d15bf973e487b0eb75e.s1.eu.hivemq.cloud";
+const char* mqtt_username = "AhmedMourad";
+const char* mqtt_password = "0XgUj^W$";
+const int mqtt_port = 8883;
+
 
 // Callback function to handle messages received on subscribed topics
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -62,48 +63,18 @@ void reconnect() {
   }
 }
 
+//this is a function responsible to make the fans actuate automaticaly according to sensors readings
+void controlFansAutomatically() {
 
-
-
-void recieveSensors_Actuate(){
-
-if (mySerial.available()) { 
-  
-  String receivedData = mySerial.readStringUntil('\n');
-
-  int commaIndex = receivedData.indexOf(',');
-  temperature = receivedData.substring(0, commaIndex).toFloat();
-  receivedData = receivedData.substring(commaIndex + 1);
-  
-  commaIndex = receivedData.indexOf(',');
-  humidity = receivedData.substring(0, commaIndex).toFloat();
-  receivedData = receivedData.substring(commaIndex + 1);
-
-  commaIndex = receivedData.indexOf(',');
-  GasMQ5Percentage = receivedData.substring(0, commaIndex).toInt();
-  receivedData = receivedData.substring(commaIndex + 1);
-
-  commaIndex = receivedData.indexOf(',');
-  MQ2SmokePercentage = receivedData.substring(0, commaIndex).toInt();
-  receivedData = receivedData.substring(commaIndex + 1);
-  
-  commaIndex = receivedData.indexOf(',');
-  Distance_cm = receivedData.substring(0, commaIndex).toInt();
-
-  flameSensorValue = receivedData.substring(commaIndex + 1).toInt();
-
-
-if (Distance_cm < 4) {
+  if (Distance_cm < 4) {
     Serial.println("Person detected, opening door");
     lcd.clear();
     lcd.print("Person detected");
     myServo.write(180);  // Move servo to open door
-  client.publish("esp32/servo","180");
-
-    delay(1000);        
-    myServo.write(0);    // Close door
-      client.publish("esp32/servo","0");
-
+    client.publish("esp32/servo", "180");
+    delay(1000);
+    myServo.write(0);  // Close door
+    client.publish("esp32/servo", "0");
   }
 
   // Check temperature and control fan one
@@ -117,7 +88,7 @@ if (Distance_cm < 4) {
   }
 
   // Check for fire, gas, or smoke detection and control fan two(exhaust fan), LED, and buzzer
-  int flameThreshold = 1000; 
+  int flameThreshold = 1000;
   if (flameSensorValue < flameThreshold) {
     Serial.println("Alert: Fire Detected");
     lcd.clear();
@@ -128,7 +99,7 @@ if (Distance_cm < 4) {
     digitalWrite(fan1, LOW);
     client.publish("esp32/alerts", "Fire detected!");
 
-  } else if (GasMQ5Percentage > 10) {
+  } else if (GasMQ5Percentage > 5) {
     Serial.println("Alert: Gas Detected, turning on exhaust fan!");
     lcd.clear();
     lcd.print("Gas Detected!");
@@ -152,47 +123,117 @@ if (Distance_cm < 4) {
     digitalWrite(buzzerPin, LOW);
     digitalWrite(fan2, LOW);
   }
-
-// Publish sensor readings to MQTT topics
-fan1State = digitalRead(fan1);
-fan2State = digitalRead(fan2);
-
-
-if (fan1State == HIGH) {
-    client.publish("esp32/fan1", "ON");
-} else {
-    client.publish("esp32/fan1", "OFF");
 }
 
-if (fan2State == HIGH) {
-    client.publish("esp32/fan2", "ON");
-} else {
-    client.publish("esp32/fan2", "OFF");
-};
-  client.publish("esp32/irSensor", String(Distance_cm).c_str());
-  client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
-  client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
-  client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
-  client.publish("esp32/temperatureSensor", String(temperature).c_str());
-  client.publish("esp32/humiditySensor", String(humidity).c_str());
-
-
- // Display temperature and humidity on LCD
-  delay(700);
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Temp: ");
-  lcd.print(temperature);
-  lcd.print(" C");
-  lcd.setCursor(0, 1);
-  lcd.print("Humidity: ");
-  lcd.print(humidity);
-  lcd.print("%");
-
-}
+// this function is responsible for manual control to the fans using keypad
+void controlFansManually(char key) {
+  switch (key) {
+    case '1':
+      digitalWrite(fan1, HIGH);
+      break;
+    case '2':
+      digitalWrite(fan1, LOW);
+      break;
+    case '3':
+      digitalWrite(fan2, HIGH);
+      break;
+    case '4':
+      digitalWrite(fan2, LOW);
+      break;
+    case '5':
+      digitalWrite(fan1, HIGH);
+      digitalWrite(fan2, HIGH);
+      break;
+    case '6':
+      digitalWrite(fan1, LOW);
+      digitalWrite(fan2, LOW);
+      break;
+  }
 }
 
-void print_sensors_reading(){
+void recieveSensors_Actuate() {
+  if (mySerial.available()) {
+    String receivedData = mySerial.readStringUntil('\n');  // Read the incoming data
+
+    // Extract the mode ('A' or 'M')
+    char mode = receivedData.charAt(0);
+    AutoMode = (mode == 'A');
+    receivedData = receivedData.substring(1);
+
+    // Parse sensors data
+    int commaIndex = receivedData.indexOf(',');
+    temperature = receivedData.substring(0, commaIndex).toFloat();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    commaIndex = receivedData.indexOf(',');
+    humidity = receivedData.substring(0, commaIndex).toFloat();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    commaIndex = receivedData.indexOf(',');
+    GasMQ5Percentage = receivedData.substring(0, commaIndex).toInt();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    commaIndex = receivedData.indexOf(',');
+    MQ2SmokePercentage = receivedData.substring(0, commaIndex).toInt();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    commaIndex = receivedData.indexOf(',');
+    Distance_cm = receivedData.substring(0, commaIndex).toInt();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    commaIndex = receivedData.indexOf(',');
+    flameSensorValue = receivedData.substring(0, commaIndex).toInt();
+    receivedData = receivedData.substring(commaIndex + 1);
+
+    keyPressed = receivedData.charAt(0);
+
+    if (AutoMode) {
+      controlFansAutomatically();
+    } else {
+      controlFansManually(keyPressed);
+    }
+
+    // Read and Publish fan state to MQTT topics
+    fan1State = digitalRead(fan1);
+    fan2State = digitalRead(fan2);
+    if (fan1State == HIGH) {
+      client.publish("esp32/fan1", "ON");
+    } else {
+      client.publish("esp32/fan1", "OFF");
+    }
+
+    if (fan2State == HIGH) {
+      client.publish("esp32/fan2", "ON");
+    } else {
+      client.publish("esp32/fan2", "OFF");
+    };
+
+    // Publish all sensor readings to MQTT topics
+    client.publish("esp32/irSensor", String(Distance_cm).c_str());
+    client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
+    client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
+    client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
+    client.publish("esp32/temperatureSensor", String(temperature).c_str());
+    client.publish("esp32/humiditySensor", String(humidity).c_str());
+
+
+    // Display temperature and humidity on LCD
+    delay(700);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Temp: ");
+    lcd.print(temperature);
+    lcd.print(" C");
+    lcd.setCursor(0, 1);
+    lcd.print("Humidity: ");
+    lcd.print(humidity);
+    lcd.print("%");
+  }
+}
+
+void print_sensors_reading() {
+  Serial.print("Automatic Mode state: ");
+  Serial.println(AutoMode);
   Serial.print("IR Sensor Value: ");
   Serial.println(Distance_cm);
   Serial.print("Flame Sensor Value: ");
@@ -209,14 +250,14 @@ void print_sensors_reading(){
   Serial.print("Humidity Value: ");
   Serial.print(humidity);
   Serial.println(" %");
+  Serial.print("Pressed key: ");
+  Serial.println(keyPressed);
+  delay(500);
 }
 
-
-
 void setup() {
-
   Serial.begin(115200);
-  mySerial.begin(115200, SERIAL_8N1, RXp2, TXp2);  // UART1: RX on GPIO16, TX on GPIO17    
+  mySerial.begin(115200, SERIAL_8N1, RXp2, TXp2);  // UART1: RX on GPIO16, TX on GPIO17
 
   pinMode(ledPin, OUTPUT);
   pinMode(buzzerPin, OUTPUT);
@@ -225,7 +266,7 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   myServo.attach(servoPin);
 
-  //setting up lcd 
+  //setting up lcd
   Wire.begin(26, 25);
   lcd.begin(16, 2);
   lcd.backlight();
@@ -236,8 +277,6 @@ void setup() {
   myServo.write(0);  // Set servo to 0 degrees
 
 
-
-
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -245,7 +284,7 @@ void setup() {
     Serial.println("Connecting to WiFi...");
     lcd.setCursor(0, 0);
     lcd.println("Connecting to    ");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("WiFi");
   }
   Serial.println("Connected to WiFi");
@@ -273,18 +312,13 @@ void setup() {
   }
 }
 
-
-
 void loop() {
-
-//  Ensure the client stays connected and processes incoming messages
-if (!client.connected()) {
+  //  Ensure the client stays connected and processes incoming messages
+  if (!client.connected()) {
     reconnect();
   }
-client.loop();
+  client.loop();
 
-recieveSensors_Actuate();
-print_sensors_reading();
-
-
+  recieveSensors_Actuate();
+  print_sensors_reading();
 }
