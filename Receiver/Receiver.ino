@@ -25,6 +25,9 @@ float temperature, humidity;
 int GasMQ5Percentage, MQ2SmokePercentage, Distance_cm, flameSensorValue, fan1State, fan2State;
 char keyPressed = ' ';
 bool AutoMode = true;  // Start system in automatic mode
+bool autoModeflutterFan1 = true;
+bool autoModeflutterFan2 = true;
+
 
 //create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
 HardwareSerial mySerial(1);
@@ -40,22 +43,44 @@ const char* password = "Gigabyte4802$";
 // MQTT Broker details
 const char* mqtt_broker = "e56327f5fee34d15bf973e487b0eb75e.s1.eu.hivemq.cloud";
 const char* mqtt_username = "AhmedMourad";
-const char* mqtt_password = "0XgUj^W$";
+const char* mqtt_password = "0XgUj^W11";
 const int mqtt_port = 8883;
 
 
 // Callback function to handle messages received on subscribed topics
-
 //topic: A pointer to a character array (C-style string) that holds the name of the topic on which the message was received.
 //byte* payload: A pointer to a byte array containing the message data received.
 // int length: The length of the message (number of bytes in the payload)
-
 void callback(char* topic, byte* payload, unsigned int length) {
   String message;
   for (int i = 0; i < length; i++) {
     message += (char)payload[i];
   }
+  if (String(topic) == "esp32/fan1") {
+    if (message == "AUTO") {
+      autoModeflutterFan1 = true;
+    } else {
+      autoModeflutterFan1 = false;
+      if (message == "ON") {
+        digitalWrite(fan1, HIGH);
+      } else if (message == "OFF") {
+        digitalWrite(fan1, LOW);
+      }
+    }
+  } else if (String(topic) == "esp32/fan2") {
+    if (message == "AUTO") {
+      autoModeflutterFan2 = true;
+    } else {
+      autoModeflutterFan2 = false;
+      if (message == "ON") {
+        digitalWrite(fan2, HIGH);
+      } else if (message == "OFF") {
+        digitalWrite(fan2, LOW);
+      }
+    }
+  }
 }
+
 // Reconnect function to maintain MQTT connection
 void reconnect() {
   while (!client.connected()) {
@@ -84,53 +109,55 @@ if (Distance_cm < 4) {
     myServo.write(0);  // Close door
     client.publish("esp32/servo", "0");
   }
-
-  // Check temperature and control fan one
-  if (temperature >= 30) {
-    Serial.print("Temperature = ");
-    Serial.print(temperature);
-    Serial.println(" Temp >= 30 ,fan 1 is on");
-    digitalWrite(fan1, HIGH);  // turn on fan 1
-  } else {
-    digitalWrite(fan1, LOW);  // turn off fan1
+  
+  if (autoModeflutterFan1) {
+    // Check temperature and control fan one
+    if (temperature >= 30) {
+      Serial.print("Temperature = ");
+      Serial.print(temperature);
+      Serial.println(" Temp >= 30 ,fan 1 is on");
+      digitalWrite(fan1, HIGH);
+    } else {
+      digitalWrite(fan1, LOW);
+    }
   }
+  if (autoModeflutterFan2) {
+    // Check for fire, gas, or smoke detection and control fan two(exhaust fan), LED, and buzzer
+    int flameThreshold = 1000;
+    if (flameSensorValue < flameThreshold) { //---> Threshold For our Flame Sensor
+      Serial.println("Alert: Fire Detected"); // Check Fire Detected if The flameSensorValue is Smaller than flameThreshold
+      lcd.clear();
+      lcd.print("Fire Detected!");
+      digitalWrite(ledPin, HIGH); // turn on red led
+      digitalWrite(buzzerPin, HIGH); //turn on buzzer
+      digitalWrite(fan2, HIGH); //turn on air pump
+      digitalWrite(fan1, LOW); // turn off fan
+      client.publish("esp32/alerts", "Fire detected!"); // publish the Fire Detected message on MQTT broker
 
-  // Check for fire, gas, or smoke detection and control fan two(exhaust fan), LED, and buzzer
- int flameThreshold = 1000; //---> Threshold For our Flame Sensor
-  if (flameSensorValue < flameThreshold) { // Check Fire Detected if The flameSensorValue is Smaller than flameThreshold
-    Serial.println("Alert: Fire Detected");
-    lcd.clear();
-    lcd.print("Fire Detected!");
-    digitalWrite(ledPin, HIGH); // turn on red led
-    digitalWrite(buzzerPin, HIGH);//turn on buzzer
-    digitalWrite(fan2, HIGH);//turn on air pump
-    digitalWrite(fan1, LOW);// turn off fan
-    client.publish("esp32/alerts", "Fire detected!"); // publish the Fire Detected message on MQTT Server
-    
-  } else if (GasMQ5Percentage > 5) { // check if The GAS Sensor Value is bigger than 5
-    Serial.println("Alert: Gas Detected, turning on exhaust fan!");
-    lcd.clear();
-    lcd.print("Gas Detected!");
-    digitalWrite(ledPin, HIGH);  // turn on red led
-    digitalWrite(buzzerPin, HIGH); // turn on buzzer
-    digitalWrite(fan2, HIGH);     // turn on air pump
-    digitalWrite(fan1, LOW);      // turn off fan
-    client.publish("esp32/alerts", "Gas detected!"); // publish the Gas Detected message on MQTT Server
+    } else if (GasMQ5Percentage > 5) { // check if The GAS Sensor Value is bigger than 5
+      Serial.println("Alert: Gas Detected, turning on exhaust fan!");
+      lcd.clear();
+      lcd.print("Gas Detected!");
+      digitalWrite(ledPin, HIGH); // turn on red led
+      digitalWrite(buzzerPin, HIGH); // turn on buzzer
+      digitalWrite(fan2, HIGH); // turn on air pump
+      digitalWrite(fan1, LOW); // turn off fan
+      client.publish("esp32/alerts", "Gas detected!"); // publish the Gas Detected message on MQTT broker
 
-  } else if (MQ2SmokePercentage > 25) {   // check if The Smoke Sensor Value is bigger than 25
-    Serial.println("Alert: Smoke Detected turning on exhaust fan!");
-    lcd.clear();
-    lcd.print("Smoke Detected!");
-    digitalWrite(ledPin, HIGH);// turn on red led
-    digitalWrite(buzzerPin, HIGH); // turn on buzzer
-    digitalWrite(fan1, LOW);// turn on air pump
-    digitalWrite(fan2, HIGH);  // turn off fan
-    client.publish("esp32/alerts", "Smoke detected!");
-    
-  } else {
-    digitalWrite(ledPin, LOW); // turn off red led
-    digitalWrite(buzzerPin, LOW); // turn off buzzer
-    digitalWrite(fan2, LOW);  // turn off air pump
+    } else if (MQ2SmokePercentage > 20) { // check if The Smoke Sensor Value is bigger than 20
+      Serial.println("Alert: Smoke Detected turning on exhaust fan!");
+      lcd.clear();
+      lcd.print("Smoke Detected!");
+      digitalWrite(ledPin, HIGH); // turn on red led
+      digitalWrite(buzzerPin, HIGH); // turn on buzzer
+      digitalWrite(fan1, LOW);  // turn off fan
+      digitalWrite(fan2, HIGH); // turn on air pump
+      client.publish("esp32/alerts", "Smoke detected!");
+    } else {
+      digitalWrite(ledPin, LOW); //turn off red led
+      digitalWrite(buzzerPin, LOW); // turn off buzzer
+      digitalWrite(fan2, LOW);  // turn off air pump
+    }
   }
 }
 
@@ -202,21 +229,21 @@ void recieveSensors_Actuate() {
     }
 
     // Read and Publish fan state to MQTT topics
-    fan1State = digitalRead(fan1);
+    fan1State = digitalRead(fan1); 
     fan2State = digitalRead(fan2);
-    if (fan1State == HIGH) { // if fan is turned on
-      client.publish("esp32/fan1", "ON"); //publish ON message on hiveMQ server
+    if (fan1State == HIGH) { //if fan is turned on
+      client.publish("esp/fan1", "ON"); //publish ON message on MQTT broker
     } else {
-      client.publish("esp32/fan1", "OFF"); //publish OFF message on hiveMQ Server
+      client.publish("esp/fan1", "OFF"); //publish OFF message on MQTT broker
     }
 
-    if (fan2State == HIGH) { // if air pump is turned on
-      client.publish("esp32/fan2", "ON"); //publish ON message on hiveMQ server
+    if (fan2State == HIGH) { //if air pump is turned on
+      client.publish("esp/fan2", "ON"); //publish ON message on MQTT broker
     } else {
-      client.publish("esp32/fan2", "OFF"); //publish OFF message on hiveMQ Server
-    };
+      client.publish("esp/fan2", "OFF"); //publish OFF message on MQTT broker
+    }
 
-  // Convert Signals From our Sensors to String and Publish them to MQTT Server
+  // Convert Signals From our Sensors to String and Publish them to MQTT broker
     client.publish("esp32/irSensor", String(Distance_cm).c_str());
     client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
     client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
@@ -322,6 +349,8 @@ void setup() {
       delay(2000);
     }
   }
+  client.subscribe("esp32/fan1");
+  client.subscribe("esp32/fan2");
 }
 
 void loop() {
