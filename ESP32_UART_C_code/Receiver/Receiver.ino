@@ -5,6 +5,7 @@
 #include <HardwareSerial.h>    //used to manage hardware serial communication on the ESP32
 #include <Wire.h>              //I2C communication
 #include <LiquidCrystal_I2C.h>  // used to control an LCD display with an I2C interface
+#include "secrets.h"
 
 // defining uart pins used for transmission
 #define RXp2 16
@@ -37,13 +38,13 @@ WiFiClientSecure wifiClient;
 PubSubClient client(wifiClient);
 
 // Wi-Fi credentials
-const char* ssid = "giga2";
-const char* password = "Gigabyte4802$";
+const char* ssid = YOUR_SSID;
+const char* password = YOUR_PASS;
 
 // MQTT Broker details
-const char* mqtt_broker = "e56327f5fee34d15bf973e487b0eb75e.s1.eu.hivemq.cloud";
-const char* mqtt_username = "AhmedMourad";
-const char* mqtt_password = "0XgUj^W11";
+const char* mqtt_broker = MQTT_BROKER;
+const char* mqtt_username = MQTT_USERNAME;
+const char* mqtt_password = MQTT_PASS;
 const int mqtt_port = 8883;
 
 
