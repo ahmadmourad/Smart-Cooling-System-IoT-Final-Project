@@ -7,7 +7,7 @@
 #include <HardwareSerial.h> //used to manage hardware serial communication on the ESP32
 #include <DHT.h> // used to manage the DHT Sensor
 #include <Keypad.h>
-
+#include "secrets.h"
 
 // DHT Sensor setup
 #define DHTTYPE DHT11
@@ -41,13 +41,9 @@ bool AutoMode = true;  // Start system in automatic mode
 
 HardwareSerial mySerial(1);// used to create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
 
-const char* ssid = "giga2";
-const char* password = "Gigabyte4802$";
+const char* ssid = YOUR_SSID;
+const char* password = YOUR_PASS;
 
-// Firebase project API Key
-#define MYAPI "AIzaSyAFike-ZBRoxEHmnn_rqLAysr2KePXGtls"
-// RTDB URL
-#define RTdatabase_url "https://smartcoolingsystem-63eb9-default-rtdb.firebaseio.com"
 FirebaseData Fbdata;
 FirebaseAuth auth;
 FirebaseConfig config;
@@ -179,12 +175,12 @@ void setup() {
 
 
   // Assigning API key
-  config.api_key = MYAPI;
+  config.api_key = YOUR_GOOGLE_APIKEY;
   // Assigning RTDB URL
-  config.database_url = RTdatabase_url;
+  config.database_url = DB_URL;
   // Assigning user authentication credentials
-  auth.user.email = "firebaseprojectsiot@gmail.com";
-  auth.user.password = "%vu@4dAVn^MuXCV$JyF";
+  auth.user.email = FIREBASE_EMAIL;
+  auth.user.password = FIREBASE_PASS;
   // Initializing Firebase
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
