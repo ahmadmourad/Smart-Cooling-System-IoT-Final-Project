@@ -6,21 +6,34 @@ class FanControlScreen extends StatelessWidget {
 
   FanControlScreen({required this.mqttClientWrapper});
 
+  // Publishes a message to the MQTT broker to toggle a device on or off
+
+  // The device name is added to the 'esp32/' topic and the message is published to the resulting topic
+
+  /// [device] is the name of the device to toggle like 'fan1' or 'fan2'
+  /// [message] is the message to publish to the MQTT broker, e.g. 'ON' or 'OFF' or 'AUTO'
   void _toggleDevice(String device, String message) {
     mqttClientWrapper.publishMessage('esp32/$device', message);
   }
 
   @override
+
+  /// Building the UI for the FanControlScreen widget
+
+  /// This returns a Scaffold widget with an AppBar and a body containing a vertical column
+  /// with a fan control section, an air pump control section, and ElevatedButton widgets
+  /// for controlling the fan and air pump.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Control System'),
-        backgroundColor: Color.fromARGB(124, 150, 18, 157),
+        title: Text('Control System'), // Screen title
+        backgroundColor: Color.fromARGB(124, 150, 18, 157), // Appbar color
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center, // Vertical Axis
           children: [
+            // Fan Control Section
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -35,23 +48,26 @@ class FanControlScreen extends StatelessWidget {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('fan1', 'ON');
+                _toggleDevice(
+                    'fan1', 'ON'); // Publishes 'ON' message to 'esp32/fan1'
               },
               child: Text('Turn On'),
             ),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('fan1', 'OFF');
+                _toggleDevice(
+                    'fan1', 'OFF'); // Publishes 'OFF' message to 'esp32/fan1'
               },
               child: Text('Turn Off'),
             ),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('fan1', 'AUTO');
+                _toggleDevice(
+                    'fan1', 'AUTO'); // Publishes 'AUTO' message to 'esp32/fan1'
               },
               child: Text('Auto Mode'),
             ),
-            SizedBox(height: 20), // add some space between sections
+            SizedBox(height: 20),
 
             // Air Pump System Section
             Row(
@@ -68,19 +84,22 @@ class FanControlScreen extends StatelessWidget {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('airPump', 'ON');
+                _toggleDevice(
+                    'fan2', 'ON'); // Publishes 'ON' message to 'esp32/'
               },
               child: Text('Turn On'),
             ),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('airPump', 'OFF');
+                _toggleDevice('fan2',
+                    'OFF'); // Publishes 'OFF' message to 'esp32/airPump'
               },
               child: Text('Turn Off'),
             ),
             ElevatedButton(
               onPressed: () {
-                _toggleDevice('airPump', 'AUTO');
+                _toggleDevice('fan2',
+                    'AUTO'); // Publishes 'AUTO' message to 'esp32/airPump'
               },
               child: Text('Auto Mode'),
             ),

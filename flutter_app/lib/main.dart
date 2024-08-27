@@ -7,7 +7,7 @@ import 'signIn.dart';
 import 'signUp.dart';
 import 'home.dart';
 
-// Global MQTTClientWrapper instance
+// Global MQTTClientWrapper instance for general use
 MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
 
 void main() async {
@@ -24,11 +24,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      debugShowCheckedModeBanner: false, // Remove debug banner
+      initialRoute: '/', // Set initial route to launching the app
       routes: {
-        '/': (context) => SignInScreen(),
+        '/': (context) => HomeScreen(), // Set routes for each screen
+        '/sign-in': (context) => SignInScreen(),
         '/sign-up': (context) => SignUpScreen(),
-        '/home': (context) => HomeScreen(),
         '/sensor': (context) =>
             SensorScreen(mqttClientWrapper: mqttClientWrapper),
         '/fan-control': (context) =>
