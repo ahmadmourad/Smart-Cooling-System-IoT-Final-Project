@@ -1,4 +1,5 @@
-// Use this file to store all of the private credentials
+// copy this file and put it in the same directory with name secrets.h
+// Use this file to store all of the private credentials 
 // and connection details
 
 #define YOUR_SSID "MySSID"         // replace MySSID with your WiFi network name
