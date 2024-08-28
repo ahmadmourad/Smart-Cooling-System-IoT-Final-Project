@@ -1,9 +1,9 @@
-#include <WiFi.h>              //allows the ESP32 to connect to Wi-Fi networks
-#include <WiFiClientSecure.h>  //provides a secure connection over Wi-Fi using SSL/TLS
-#include <PubSubClient.h>      //used for MQTT communication.
-#include <ESP32Servo.h>        // used for Servo
-#include <HardwareSerial.h>    //used to manage hardware serial communication on the ESP32
-#include <Wire.h>              //I2C communication
+#include <WiFi.h>               //allows the ESP32 to connect to Wi-Fi networks
+#include <WiFiClientSecure.h>   //provides a secure connection over Wi-Fi using SSL/TLS
+#include <PubSubClient.h>       //used for MQTT communication.
+#include <ESP32Servo.h>         // used for Servo
+#include <HardwareSerial.h>     //used to manage hardware serial communication on the ESP32
+#include <Wire.h>               //I2C communication
 #include <LiquidCrystal_I2C.h>  // used to control an LCD display with an I2C interface
 #include "secrets.h"
 
@@ -11,8 +11,8 @@
 #define RXp2 16
 #define TXp2 17
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);    // initialize the Address and dimensions of LCD
-Servo myServo;                         //initialize object From Servo Library
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // initialize the Address and dimensions of LCD
+Servo myServo;                       //initialize object From Servo Library
 
 // define the Pins of Our Components
 const int servoPin = 13;
@@ -28,7 +28,6 @@ char keyPressed = ' ';
 bool AutoMode = true;  // Start system in automatic mode
 bool autoModeflutterFan1 = true;
 bool autoModeflutterFan2 = true;
-
 
 //create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
 HardwareSerial mySerial(1);
@@ -99,18 +98,7 @@ void reconnect() {
 
 //this is a function responsible to make the fans actuate automaticaly according to sensors readings
 void controlFansAutomatically() {
-// Condition For Open Door For Person 
-if (Distance_cm < 4) {
-    Serial.println("Person detected, opening door");
-    lcd.clear();
-    lcd.print("Person detected");
-    myServo.write(180);  // Move servo to open door
-    client.publish("esp32/servo", "180");
-    delay(1000);
-    myServo.write(0);  // Close door
-    client.publish("esp32/servo", "0");
-  }
-  
+
   if (autoModeflutterFan1) {
     // Check temperature and control fan one
     if (temperature >= 30) {
@@ -125,39 +113,39 @@ if (Distance_cm < 4) {
   if (autoModeflutterFan2) {
     // Check for fire, gas, or smoke detection and control fan two(exhaust fan), LED, and buzzer
     int flameThreshold = 1000;
-    if (flameSensorValue < flameThreshold) { //---> Threshold For our Flame Sensor
-      Serial.println("Alert: Fire Detected"); // Check Fire Detected if The flameSensorValue is Smaller than flameThreshold
+    if (flameSensorValue < flameThreshold) {   //---> Threshold For our Flame Sensor
+      Serial.println("Alert: Fire Detected");  // Check Fire Detected if The flameSensorValue is Smaller than flameThreshold
       lcd.clear();
       lcd.print("Fire Detected!");
-      digitalWrite(ledPin, HIGH); // turn on red led
-      digitalWrite(buzzerPin, HIGH); //turn on buzzer
-      digitalWrite(fan2, HIGH); //turn on air pump
-      digitalWrite(fan1, LOW); // turn off fan
-      client.publish("esp32/alerts", "Fire detected!"); // publish the Fire Detected message on MQTT broker
+      digitalWrite(ledPin, HIGH);                        // turn on red led
+      digitalWrite(buzzerPin, HIGH);                     //turn on buzzer
+      digitalWrite(fan2, HIGH);                          //turn on air pump
+      digitalWrite(fan1, LOW);                           // turn off fan
+      client.publish("esp32/alerts", "Fire detected!");  // publish the Fire Detected message on MQTT broker
 
-    } else if (GasMQ5Percentage > 5) { // check if The GAS Sensor Value is bigger than 5
+    } else if (GasMQ5Percentage > 5) {  // check if The GAS Sensor Value is bigger than 5
       Serial.println("Alert: Gas Detected, turning on exhaust fan!");
       lcd.clear();
       lcd.print("Gas Detected!");
-      digitalWrite(ledPin, HIGH); // turn on red led
-      digitalWrite(buzzerPin, HIGH); // turn on buzzer
-      digitalWrite(fan2, HIGH); // turn on air pump
-      digitalWrite(fan1, LOW); // turn off fan
-      client.publish("esp32/alerts", "Gas detected!"); // publish the Gas Detected message on MQTT broker
+      digitalWrite(ledPin, HIGH);                       // turn on red led
+      digitalWrite(buzzerPin, HIGH);                    // turn on buzzer
+      digitalWrite(fan2, HIGH);                         // turn on air pump
+      digitalWrite(fan1, LOW);                          // turn off fan
+      client.publish("esp32/alerts", "Gas detected!");  // publish the Gas Detected message on MQTT broker
 
-    } else if (MQ2SmokePercentage > 20) { // check if The Smoke Sensor Value is bigger than 20
+    } else if (MQ2SmokePercentage > 20) {  // check if The Smoke Sensor Value is bigger than 20
       Serial.println("Alert: Smoke Detected turning on exhaust fan!");
       lcd.clear();
       lcd.print("Smoke Detected!");
-      digitalWrite(ledPin, HIGH); // turn on red led
-      digitalWrite(buzzerPin, HIGH); // turn on buzzer
-      digitalWrite(fan1, LOW);  // turn off fan
-      digitalWrite(fan2, HIGH); // turn on air pump
+      digitalWrite(ledPin, HIGH);     // turn on red led
+      digitalWrite(buzzerPin, HIGH);  // turn on buzzer
+      digitalWrite(fan1, LOW);        // turn off fan
+      digitalWrite(fan2, HIGH);       // turn on air pump
       client.publish("esp32/alerts", "Smoke detected!");
     } else {
-      digitalWrite(ledPin, LOW); //turn off red led
-      digitalWrite(buzzerPin, LOW); // turn off buzzer
-      digitalWrite(fan2, LOW);  // turn off air pump
+      digitalWrite(ledPin, LOW);     //turn off red led
+      digitalWrite(buzzerPin, LOW);  // turn off buzzer
+      digitalWrite(fan2, LOW);       // turn off air pump
     }
   }
 }
@@ -189,7 +177,9 @@ void controlFansManually(char key) {
 }
 
 void recieveSensors_Actuate() {
-  if (mySerial.available()) {   //if there is any data available to read from the serial connection mySerial, if data is available, it proceeds to read it.
+
+  if (mySerial.available()) {
+    //if there is any data available to read from the serial connection mySerial, if data is available, it proceeds to read it.
     String receivedData = mySerial.readStringUntil('\n');  // reading the incoming data from the serial connection until it encounters a newline
     // Extract the mode ('A' or 'M')
     char mode = receivedData.charAt(0);
@@ -198,8 +188,8 @@ void recieveSensors_Actuate() {
 
     // Parse sensors data
     int commaIndex = receivedData.indexOf(',');
-    temperature = receivedData.substring(0, commaIndex).toFloat(); //the data is assumed to be in CSV format we extract each sensor value by finding the position of the comma, 
-    receivedData = receivedData.substring(commaIndex + 1);  //splitting the string, and converting the extracted substring into the appropriate data type
+    temperature = receivedData.substring(0, commaIndex).toFloat();  //the data is assumed to be in CSV format we extract each sensor value by finding the position of the comma,
+    receivedData = receivedData.substring(commaIndex + 1);          //splitting the string, and converting the extracted substring into the appropriate data type
 
     commaIndex = receivedData.indexOf(',');
     humidity = receivedData.substring(0, commaIndex).toFloat();
@@ -220,7 +210,6 @@ void recieveSensors_Actuate() {
     commaIndex = receivedData.indexOf(',');
     flameSensorValue = receivedData.substring(0, commaIndex).toInt();
     receivedData = receivedData.substring(commaIndex + 1);
-
     keyPressed = receivedData.charAt(0);
 
     if (AutoMode) {
@@ -229,22 +218,34 @@ void recieveSensors_Actuate() {
       controlFansManually(keyPressed);
     }
 
+    // Condition For Open Door For Person
+    if (Distance_cm < 4) {
+      Serial.println("Person detected, opening door");
+      lcd.clear();
+      lcd.print("Person detected");
+      myServo.write(180);  // Move servo to open door
+      client.publish("esp32/servo", "180");
+      delay(1000);
+      myServo.write(0);  // Close door
+      client.publish("esp32/servo", "0");
+    }
+
     // Read and Publish fan state to MQTT topics
-    fan1State = digitalRead(fan1); 
+    fan1State = digitalRead(fan1);
     fan2State = digitalRead(fan2);
-    if (fan1State == HIGH) { //if fan is turned on
-      client.publish("esp/fan1", "ON"); //publish ON message on MQTT broker
+    if (fan1State == HIGH) {             //if fan is turned on
+      client.publish("esp/fan1", "ON");  //publish ON message on MQTT broker
     } else {
-      client.publish("esp/fan1", "OFF"); //publish OFF message on MQTT broker
+      client.publish("esp/fan1", "OFF");  //publish OFF message on MQTT broker
     }
 
-    if (fan2State == HIGH) { //if air pump is turned on
-      client.publish("esp/fan2", "ON"); //publish ON message on MQTT broker
+    if (fan2State == HIGH) {             //if air pump is turned on
+      client.publish("esp/fan2", "ON");  //publish ON message on MQTT broker
     } else {
-      client.publish("esp/fan2", "OFF"); //publish OFF message on MQTT broker
+      client.publish("esp/fan2", "OFF");  //publish OFF message on MQTT broker
     }
 
-  // Convert Signals From our Sensors to String and Publish them to MQTT broker
+    // Convert Signals From our Sensors to String and Publish them to MQTT broker
     client.publish("esp32/irSensor", String(Distance_cm).c_str());
     client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
     client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
@@ -289,15 +290,15 @@ void print_sensors_reading() {
   Serial.println(" %");
   Serial.print("Pressed key: ");
   Serial.println(keyPressed);
-  delay(500);
+  delay(400);
 }
 
 void setup() {
-  
-  Serial.begin(115200); // initalize The baud rate with 115200
-  mySerial.begin(115200, SERIAL_8N1, RXp2, TXp2);  // UART1: RX on GPIO16, TX on GPIO17 
-  
-// define pin Mode
+
+  Serial.begin(115200);                            // initalize The baud rate with 115200
+  mySerial.begin(115200, SERIAL_8N1, RXp2, TXp2);  // UART1: RX on GPIO16, TX on GPIO17
+
+  // define pin Mode
   pinMode(ledPin, OUTPUT);
   pinMode(buzzerPin, OUTPUT);
   pinMode(fan1, OUTPUT);
@@ -305,12 +306,12 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   myServo.attach(servoPin);
 
-  //setting up lcd 
-  Wire.begin(26, 25); // Initialize I²C communication with custom SDA and SCL pins
+  //setting up lcd
+  Wire.begin(26, 25);  // Initialize I²C communication with custom SDA and SCL pins
   lcd.begin(16, 2);
-  lcd.backlight(); //turn on the backlight of an LCD display
+  lcd.backlight();  //turn on the backlight of an LCD display
 
-// Define inital statue For Components
+  // Define inital statue For Components
   digitalWrite(fan1, LOW);
   digitalWrite(fan2, LOW);
   digitalWrite(buzzerPin, LOW);
@@ -339,7 +340,7 @@ void setup() {
   client.setCallback(callback);
 
   // Connect to the MQTT Broker
-  while (!client.connected()) { // if we not Connected with MQTT
+  while (!client.connected()) {  // if we not Connected with MQTT
     Serial.print("Connecting to MQTT Broker...");
     String client_id = "esp32-client-" + String(WiFi.macAddress());
     if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
