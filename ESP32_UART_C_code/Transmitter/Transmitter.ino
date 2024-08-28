@@ -4,8 +4,8 @@
 #include "addons/TokenHelper.h"
 //Provide the RTDB payload printing info and other helper functions.
 #include "addons/RTDBHelper.h"
-#include <HardwareSerial.h> //used to manage hardware serial communication on the ESP32
-#include <DHT.h> // used to manage the DHT Sensor
+#include <HardwareSerial.h>  //used to manage hardware serial communication on the ESP32
+#include <DHT.h>             // used to manage the DHT Sensor
 #include <Keypad.h>
 #include "secrets.h"
 
@@ -13,13 +13,13 @@
 #define DHTTYPE DHT11
 
 // define pins for our Sensors
-const int irSensorPin = 34; 
+const int irSensorPin = 34;
 const int DHTSensorPin = 23;
 const int flameSensorPin = 35;
 const int MQ5GasPin = 33;
 const int MQ2SmokePin = 32;
 
-DHT dht(DHTSensorPin, DHTTYPE); // initialize object for DHT Sensor
+DHT dht(DHTSensorPin, DHTTYPE);  // initialize object for DHT Sensor
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -39,7 +39,7 @@ float temperature, humidity;
 char keyPressed = ' ';
 bool AutoMode = true;  // Start system in automatic mode
 
-HardwareSerial mySerial(1);// used to create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
+HardwareSerial mySerial(1);  // used to create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
 
 const char* ssid = YOUR_SSID;
 const char* password = YOUR_PASS;
@@ -91,17 +91,17 @@ void readKeypad() {
 
 void transmit_sensors_keypad_reading() {
   mySerial.print(AutoMode ? "A" : "M");  // Send 'A' for automatic mode or 'M' for manual mode
-  mySerial.print(temperature);   // Sends the temperature value followed by a comma
-  mySerial.print(",");   
-  mySerial.print(humidity);    // Sends the Humidity value followed by a comma
+  mySerial.print(temperature);           // Sends the temperature value followed by a comma
+  mySerial.print(",");
+  mySerial.print(humidity);  // Sends the Humidity value followed by a comma
   mySerial.print(",");
   mySerial.print(GasMQ5Percentage);  // Sends the Gas value followed by a comma
-  mySerial.print(",");  
+  mySerial.print(",");
   mySerial.print(MQ2SmokePercentage);  // Sends the Smoke value followed by a comma
   mySerial.print(",");
-  mySerial.print(Distance_cm);       // Sends the Distance value followed by a comma 
+  mySerial.print(Distance_cm);  // Sends the Distance value followed by a comma
   mySerial.print(",");
-  mySerial.print(flameSensorValue); // Sends the Flame value followed by a comma
+  mySerial.print(flameSensorValue);  // Sends the Flame value followed by a comma
   mySerial.print(",");
   mySerial.println(keyPressed);
 }
@@ -153,7 +153,7 @@ void sendSensorReadingsToFirebase(float temperature, float humidity, int Distanc
 
 
 void setup() {
-
+  Serial.begin(115200);
   // Initialize Serial Monitor
   mySerial.begin(115200, SERIAL_8N1, 16, 17);  // UART1: RX on GPIO16, TX on GPIO17
 
