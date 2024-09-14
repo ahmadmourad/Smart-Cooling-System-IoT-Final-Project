@@ -5,6 +5,7 @@
 #include <HardwareSerial.h>     //used to manage hardware serial communication on the ESP32
 #include <Wire.h>               //I2C communication
 #include <LiquidCrystal_I2C.h>  // used to control an LCD display with an I2C interface
+#include <Keypad.h>
 #include "secrets.h"
 
 // defining uart pins used for transmission
@@ -21,9 +22,24 @@ const int buzzerPin = 15;
 const int fan1 = 27;
 const int fan2 = 14;
 
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
+};
+byte rowPins[ROWS] = { 12, 33, 32, 5 };
+byte colPins[COLS] = { 19, 21, 22, 23 };
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+
+
 //defining required variables For Our Sensors , fan and air pump
 float temperature, humidity;
-int GasMQ5Percentage, MQ2SmokePercentage, Distance_cm, flameSensorValue, fan1State, fan2State;
+int GasMQ5Percentage, MQ2SmokePercentage, Distance_cm, fan1State, fan2State;
+int flameSensorValue = 4095;
 char keyPressed = ' ';
 bool AutoMode = true;  // Start system in automatic mode
 bool autoModeflutterFan1 = true;
@@ -59,8 +75,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (String(topic) == "esp32/fan1") {
     if (message == "AUTO") {
       autoModeflutterFan1 = true;
+      AutoMode = true;
     } else {
       autoModeflutterFan1 = false;
+      keyPressed = ' ';
       if (message == "ON") {
         digitalWrite(fan1, HIGH);
       } else if (message == "OFF") {
@@ -70,8 +88,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (String(topic) == "esp32/fan2") {
     if (message == "AUTO") {
       autoModeflutterFan2 = true;
+      AutoMode = true;
     } else {
       autoModeflutterFan2 = false;
+      keyPressed = ' ';
       if (message == "ON") {
         digitalWrite(fan2, HIGH);
       } else if (message == "OFF") {
@@ -101,7 +121,7 @@ void controlFansAutomatically() {
 
   if (autoModeflutterFan1) {
     // Check temperature and control fan one
-    if (temperature >= 30) {
+    if (temperature >= 28) {
       Serial.print("Temperature = ");
       Serial.print(temperature);
       Serial.println(" Temp >= 30 ,fan 1 is on");
@@ -123,7 +143,7 @@ void controlFansAutomatically() {
       digitalWrite(fan1, LOW);                           // turn off fan
       client.publish("esp32/alerts", "Fire detected!");  // publish the Fire Detected message on MQTT broker
 
-    } else if (GasMQ5Percentage > 5) {  // check if The GAS Sensor Value is bigger than 5
+    } else if (GasMQ5Percentage > 9) {  // check if The GAS Sensor Value is bigger than 5
       Serial.println("Alert: Gas Detected, turning on exhaust fan!");
       lcd.clear();
       lcd.print("Gas Detected!");
@@ -133,7 +153,7 @@ void controlFansAutomatically() {
       digitalWrite(fan1, LOW);                          // turn off fan
       client.publish("esp32/alerts", "Gas detected!");  // publish the Gas Detected message on MQTT broker
 
-    } else if (MQ2SmokePercentage > 20) {  // check if The Smoke Sensor Value is bigger than 20
+    } else if (MQ2SmokePercentage > 25) {  // check if The Smoke Sensor Value is bigger than 20
       Serial.println("Alert: Smoke Detected turning on exhaust fan!");
       lcd.clear();
       lcd.print("Smoke Detected!");
@@ -181,15 +201,11 @@ void recieveSensors_Actuate() {
   if (mySerial.available()) {
     //if there is any data available to read from the serial connection mySerial, if data is available, it proceeds to read it.
     String receivedData = mySerial.readStringUntil('\n');  // reading the incoming data from the serial connection until it encounters a newline
-    // Extract the mode ('A' or 'M')
-    char mode = receivedData.charAt(0);
-    AutoMode = (mode == 'A');
-    receivedData = receivedData.substring(1);
 
     // Parse sensors data
     int commaIndex = receivedData.indexOf(',');
-    temperature = receivedData.substring(0, commaIndex).toFloat();  //the data is assumed to be in CSV format we extract each sensor value by finding the position of the comma,
-    receivedData = receivedData.substring(commaIndex + 1);          //splitting the string, and converting the extracted substring into the appropriate data type
+    temperature = receivedData.substring(0, commaIndex).toFloat(); //the data is assumed to be in CSV format we extract each sensor value by finding the position of the comma,
+    receivedData = receivedData.substring(commaIndex + 1); //splitting the string, and converting the extracted substring into the appropriate data type
 
     commaIndex = receivedData.indexOf(',');
     humidity = receivedData.substring(0, commaIndex).toFloat();
@@ -205,18 +221,8 @@ void recieveSensors_Actuate() {
 
     commaIndex = receivedData.indexOf(',');
     Distance_cm = receivedData.substring(0, commaIndex).toInt();
-    receivedData = receivedData.substring(commaIndex + 1);
 
-    commaIndex = receivedData.indexOf(',');
-    flameSensorValue = receivedData.substring(0, commaIndex).toInt();
-    receivedData = receivedData.substring(commaIndex + 1);
-    keyPressed = receivedData.charAt(0);
-
-    if (AutoMode) {
-      controlFansAutomatically();
-    } else {
-      controlFansManually(keyPressed);
-    }
+    flameSensorValue = receivedData.substring(commaIndex + 1).toInt();
 
     // Condition For Open Door For Person
     if (Distance_cm < 4) {
@@ -245,13 +251,29 @@ void recieveSensors_Actuate() {
       client.publish("esp/fan2", "OFF");  //publish OFF message on MQTT broker
     }
 
+
+// client.publish("esp32/irSensor", String(Distance_cm).c_str());
+//     client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
+//     client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
+//     client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
+//     client.publish("esp32/temperatureSensor", String(temperature).c_str());
+//     client.publish("esp32/humiditySensor", String(humidity).c_str());
+
+
     // Convert Signals From our Sensors to String and Publish them to MQTT broker
-    client.publish("esp32/irSensor", String(Distance_cm).c_str());
-    client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
-    client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
-    client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
-    client.publish("esp32/temperatureSensor", String(temperature).c_str());
-    client.publish("esp32/humiditySensor", String(humidity).c_str());
+    String irSensorMessage = "irSensor: " + String(Distance_cm);
+    String flameSensorMessage = "flameSensor: " + String(flameSensorValue);
+    String gasSensorMessage = "gasSensor: " + String(GasMQ5Percentage);
+    String smokeSensorMessage = "smokeSensor: " + String(MQ2SmokePercentage);
+    String temperatureSensorMessage = "temperatureSensor: " + String(temperature);
+    String humiditySensorMessage = "humiditySensor: " + String(humidity);
+
+    client.publish("esp32/irSensor", irSensorMessage.c_str());
+    client.publish("esp32/flameSensor", flameSensorMessage.c_str());
+    client.publish("esp32/gasSensor", gasSensorMessage.c_str());
+    client.publish("esp32/smokeSensor", smokeSensorMessage.c_str());
+    client.publish("esp32/temperatureSensor", temperatureSensorMessage.c_str());
+    client.publish("esp32/humiditySensor", humiditySensorMessage.c_str());
 
 
     // Display temperature and humidity on LCD
@@ -356,12 +378,31 @@ void setup() {
 }
 
 void loop() {
+
+char key = keypad.getKey();
+if (key){ 
+  if (key == 'A') {  // Switch to automatic mode
+    AutoMode = true;
+    keyPressed= ' ';
+    autoModeflutterFan1 = true;
+    autoModeflutterFan2 = true;
+  } else {  // Switch to manual mode and store the key
+    AutoMode = false;
+    keyPressed = key;
+  }
+}
+
+  if (AutoMode) {
+    controlFansAutomatically();
+  } else {
+    controlFansManually(keyPressed);
+  }
+
+recieveSensors_Actuate();
   //  Ensure the client stays connected and processes incoming messages
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-
-  recieveSensors_Actuate();
   print_sensors_reading();
 }
