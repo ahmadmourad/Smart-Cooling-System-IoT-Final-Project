@@ -252,28 +252,28 @@ void recieveSensors_Actuate() {
     }
 
 
-client.publish("esp32/irSensor", String(Distance_cm).c_str());
-    client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
-    client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
-    client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
-    client.publish("esp32/temperatureSensor", String(temperature).c_str());
-    client.publish("esp32/humiditySensor", String(humidity).c_str());
+// client.publish("esp32/irSensor", String(Distance_cm).c_str());
+//     client.publish("esp32/flameSensor", String(flameSensorValue).c_str());
+//     client.publish("esp32/gasSensor", String(GasMQ5Percentage).c_str());
+//     client.publish("esp32/smokeSensor", String(MQ2SmokePercentage).c_str());
+//     client.publish("esp32/temperatureSensor", String(temperature).c_str());
+//     client.publish("esp32/humiditySensor", String(humidity).c_str());
 
 
-    // // Convert Signals From our Sensors to String and Publish them to MQTT broker
-    // String irSensorMessage = "irSensor: " + String(Distance_cm);
-    // String flameSensorMessage = "flameSensor: " + String(flameSensorValue);
-    // String gasSensorMessage = "gasSensor: " + String(GasMQ5Percentage);
-    // String smokeSensorMessage = "smokeSensor: " + String(MQ2SmokePercentage);
-    // String temperatureSensorMessage = "temperatureSensor: " + String(temperature);
-    // String humiditySensorMessage = "humiditySensor: " + String(humidity);
+    // Convert Signals From our Sensors to String and Publish them to MQTT broker
+    String irSensorMessage = "irSensor: " + String(Distance_cm);
+    String flameSensorMessage = "flameSensor: " + String(flameSensorValue);
+    String gasSensorMessage = "gasSensor: " + String(GasMQ5Percentage);
+    String smokeSensorMessage = "smokeSensor: " + String(MQ2SmokePercentage);
+    String temperatureSensorMessage = "temperatureSensor: " + String(temperature);
+    String humiditySensorMessage = "humiditySensor: " + String(humidity);
 
-    // client.publish("esp32/irSensor", irSensorMessage.c_str());
-    // client.publish("esp32/flameSensor", flameSensorMessage.c_str());
-    // client.publish("esp32/gasSensor", gasSensorMessage.c_str());
-    // client.publish("esp32/smokeSensor", smokeSensorMessage.c_str());
-    // client.publish("esp32/temperatureSensor", temperatureSensorMessage.c_str());
-    // client.publish("esp32/humiditySensor", humiditySensorMessage.c_str());
+    client.publish("esp32/irSensor", irSensorMessage.c_str());
+    client.publish("esp32/flameSensor", flameSensorMessage.c_str());
+    client.publish("esp32/gasSensor", gasSensorMessage.c_str());
+    client.publish("esp32/smokeSensor", smokeSensorMessage.c_str());
+    client.publish("esp32/temperatureSensor", temperatureSensorMessage.c_str());
+    client.publish("esp32/humiditySensor", humiditySensorMessage.c_str());
 
 
     // Display temperature and humidity on LCD
