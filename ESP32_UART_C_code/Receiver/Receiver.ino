@@ -199,12 +199,13 @@ void controlFansManually(char key) {
 void recieveSensors_Actuate() {
 
   if (mySerial.available()) {
+    //if there is any data available to read from the serial connection mySerial, if data is available, it proceeds to read it.
+    String receivedData = mySerial.readStringUntil('\n');  // reading the incoming data from the serial connection until it encounters a newline
 
-    String receivedData = mySerial.readStringUntil('\n');
-
+    // Parse sensors data
     int commaIndex = receivedData.indexOf(',');
-    temperature = receivedData.substring(0, commaIndex).toFloat();
-    receivedData = receivedData.substring(commaIndex + 1);
+    temperature = receivedData.substring(0, commaIndex).toFloat(); //the data is assumed to be in CSV format we extract each sensor value by finding the position of the comma,
+    receivedData = receivedData.substring(commaIndex + 1); //splitting the string, and converting the extracted substring into the appropriate data type
 
     commaIndex = receivedData.indexOf(',');
     humidity = receivedData.substring(0, commaIndex).toFloat();
