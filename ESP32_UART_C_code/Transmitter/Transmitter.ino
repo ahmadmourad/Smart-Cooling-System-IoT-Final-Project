@@ -6,7 +6,6 @@
 #include "addons/RTDBHelper.h"
 #include <HardwareSerial.h>  //used to manage hardware serial communication on the ESP32
 #include <DHT.h>             // used to manage the DHT Sensor
-#include <Keypad.h>
 #include "secrets.h"
 
 // DHT Sensor setup
@@ -14,30 +13,16 @@
 
 // define pins for our Sensors
 const int irSensorPin = 34;
-const int DHTSensorPin = 23;
+const int DHTSensorPin = 18;
 const int flameSensorPin = 35;
 const int MQ5GasPin = 33;
 const int MQ2SmokePin = 32;
 
 DHT dht(DHTSensorPin, DHTTYPE);  // initialize object for DHT Sensor
 
-const byte ROWS = 4;
-const byte COLS = 4;
-char keys[ROWS][COLS] = {
-  { '1', '2', '3', 'A' },
-  { '4', '5', '6', 'B' },
-  { '7', '8', '9', 'C' },
-  { '*', '0', '#', 'D' }
-};
-byte rowPins[ROWS] = { 13, 12, 14, 27 };
-byte colPins[COLS] = { 5, 18, 19, 21 };
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
-
 // defining needed variables
 int irvalue, Distance_cm, flameSensorValue, GasMQ5SensorValue, GasMQ5Percentage, MQ2SmokeSensorValue, MQ2SmokePercentage;
 float temperature, humidity;
-char keyPressed = ' ';
-bool AutoMode = true;  // Start system in automatic mode
 
 HardwareSerial mySerial(1);  // used to create an instance of the HardwareSerial class, specifically for serial communication on the ESP32.
 
@@ -47,9 +32,6 @@ const char* password = YOUR_PASS;
 FirebaseData Fbdata;
 FirebaseAuth auth;
 FirebaseConfig config;
-
-unsigned long sendDataPrevMillis = 0;
-unsigned long retrieveDataPrevMillis = 0;
 bool firebaseReady = false;
 
 
@@ -74,36 +56,18 @@ void readSensors() {
   humidity = dht.readHumidity();
 }
 
-void readKeypad() {
-  // Read the key from the keypad
-  char key = keypad.getKey();
-
-  if (key) {           // If a key is pressed
-    if (key == 'A') {  // Switch to automatic mode
-      AutoMode = true;
-      keyPressed = ' ';
-    } else {  // Switch to manual mode and store the key
-      AutoMode = false;
-      keyPressed = key;
-    }
-  }
-}
-
 void transmit_sensors_keypad_reading() {
-  mySerial.print(AutoMode ? "A" : "M");  // Send 'A' for automatic mode or 'M' for manual mode
-  mySerial.print(temperature);           // Sends the temperature value followed by a comma
+mySerial.print(temperature); // Sends the temperature value followed by a comma
   mySerial.print(",");
-  mySerial.print(humidity);  // Sends the Humidity value followed by a comma
+  mySerial.print(humidity); // Sends the Humidity value followed by a comma
   mySerial.print(",");
-  mySerial.print(GasMQ5Percentage);  // Sends the Gas value followed by a comma
+  mySerial.print(GasMQ5Percentage); // Sends the Gas value followed by a comma
   mySerial.print(",");
-  mySerial.print(MQ2SmokePercentage);  // Sends the Smoke value followed by a comma
+  mySerial.print(MQ2SmokePercentage); // Sends the Smoke value followed by a comma
   mySerial.print(",");
   mySerial.print(Distance_cm);  // Sends the Distance value followed by a comma
   mySerial.print(",");
-  mySerial.print(flameSensorValue);  // Sends the Flame value followed by a comma
-  mySerial.print(",");
-  mySerial.println(keyPressed);
+  mySerial.println(flameSensorValue); // Sends the Flame value followed by a comma
 }
 
 
@@ -195,7 +159,6 @@ void setup() {
 
 void loop() {
   readSensors();
-  readKeypad();
   transmit_sensors_keypad_reading();
   sendSensorReadingsToFirebase(temperature, humidity, Distance_cm, flameSensorValue, GasMQ5Percentage, MQ2SmokePercentage);
 }
